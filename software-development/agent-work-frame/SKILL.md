@@ -1,290 +1,244 @@
 ---
 name: agent-work-frame
-description: "Adaptive human-agent collaboration framework — feature-driven document orchestration. The core is simple: forward provides information, backward provides tests, middle iterates. Task features (knowledge_gap, needs_overview, needs_report, etc.) independently trigger enhancement modules that strengthen specific framework phases — no hard classification, no exclusive types. Full pipeline from requirements definition to paper-style report."
-version: 2.0.0
+description: "Self-contained, single-process methodology for human-agent collaboration. One task flows through four stages — Score, Grow, Iterate, Deliver — governed by three axioms: Directionality, Minimality, Monotonicity."
+version: 4.0.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [Agent-Orchestration, Task-Decomposition, Context-Management, Methodology]
-    related_skills: [claude-code, writing-plans, subagent-driven-development, task-type-classification, workframe-to-report]
+    related_skills: [ics-lab-workflow]
 ---
 
-# Agent Work Frame — Adaptive Collaboration Framework
+# Agent Work Frame
 
-A structured methodology for human-agent collaboration. The framework is simple:
+## 0. The Loop In One Picture
 
-- **Forward（正向）** — 人提供信息，Hermes 填充 knowledge + reference
-- **Backward（反向）** — Hermes 设计 testpoints，人批准
-- **Middle（中间迭代）** — Hermes + Claude Code 交替执行
+Every task flows through one pipeline. Read this section and you have the whole skill in your head; the rest is the *how* of each station.
 
-Task features (extracted by `task-type-classification`) independently trigger enhancement modules — deepening knowledge, adding overview decomposition, enabling report generation, etc. No hard classification. No exclusive types. Features stack.
+```mermaid
+flowchart LR
+  Task[Task arrives] --> A["A. Score<br/>(U, S, R) + budget"]
+  A --> B["B. Grow<br/>skeleton + roles"]
+  B --> C["C. Iterate<br/>assume / execute / verify / audit"]
+  C -->|"P0 not yet clear"| C
+  C -->|"stuck twice"| B
+  C --> D["D. Deliver<br/>template by R"]
+  D --> Done[Reviewer signs off]
+```
 
-## When to Use
+Three axioms shape every station; later rules carry an `(A?)` tag pointing back here:
 
-- Any task where "just ask the agent to do it" leads to chaos — unclear scope, lost context, or inconsistent output
-- Tasks where the difficulty profile is uncertain: you don't know if it's a 30-minute script or a 3-day project
-- Research explorations, greenfield design, protocol implementation, or multi-artifact deliveries
-- Tasks where quality requires traceability: the final report must show what was done, why, and how it was verified
+- **A1 — Directionality.** Information has direction. Roles split by who *produces* vs who *verifies*, never by who *executes*; mechanical work moves to the scalable side, judgment stays with the side that owns consequences.
+- **A2 — Minimality.** Structure grows on demand. Default skeleton is the smallest one; new files appear only when a feature axis demands them.
+- **A3 — Monotonicity.** On failure, grow knowledge, do not retune parameters. Convergence is guaranteed only by monotonic knowledge growth — stuck means step *back* to research, never *forward* to retry.
 
-## File Organization
+---
+
+## A. Score the Task
+
+**Station A** turns a free-form prompt into a `(U, S, R)` vector. The vector plus a budget tier decides everything at B and D. Default is `(0, 0, 0)`; raise an axis only when evidence demands. `(A2)`
+
+### A.1 Three axes
+
+| Axis | Question | 0 | 1 | 2 |
+|------|----------|---|---|---|
+| **U** Uncertainty | How much do human + Driver not yet know? | Materials self-contained | Some lookups / mild ambiguity | Domain unfamiliar, vague spec, or external research needed |
+| **S** Structure | How non-obvious is the product's shape? | One module, one output | Multi-module but flat | Multi-stage with non-trivial sub-pipelines |
+| **R** Risk / Formality | What is the cost of being wrong or under-documented? | Throwaway / explorative | Reviewer reads a summary | Graded, audited, irreversible, or formal deliverable |
+
+Recipe (≤ 60 s): read prompt once → one evidence sentence per axis → emit vector → pin it at the top of `goal.md`. When unsure, choose the lower degree — ceremony you create at A is paid for at every later station. `(A2)` The always-on `has_artifact` flag (any output needing self-check) is not an axis; it just appends a self-check to every step.
+
+### A.2 Dry-run budget
+
+Before any file is created at B, the Driver previews `files=N, workers=M, ~tokens=T` and a tier is chosen — turning feature-stacking avalanche into a controllable knob. `(A2)`
+
+| Tier | Cap | When |
+|------|-----|------|
+| **light** | All axes capped at 1 | Exploration; force simplification |
+| **standard** | Axes used as scored | Default |
+| **full** | Axes as scored; parallel Workers allowed | Only when R=2 *and* the task is genuinely large |
+
+### A.3 Worked examples
+
+| Task | Vector | Budget | Files that will grow at B | Template at D |
+|------|--------|--------|---------------------------|---------------|
+| Edit a single config line | `(0, 0, 0)` | light | None beyond `goal.md` + `STATUS.md` + `workspace/` | status-only |
+| Refactor a multi-module library | `(0, 2, 1)` | standard | + `notes/overview.md`, `notes/sections.md`, `notes/plan.md` | one-pager |
+| ICS course experiment (VGG19) | `(1, 1, 2)` | standard | + `notes/knowledge.md`, `notes/overview.md`, `notes/plan.md`, `notes/memory.md`, `workspace/REPORT.md` | academic-paper |
+| Novel research with unclear scope | `(2, 2, 2)` | full | + above + `notes/assumptions.md`, `notes/references.md`, sub-overviews | academic-paper |
+
+---
+
+## B. Grow the Skeleton
+
+**At station B** we materialize exactly the files and roles the vector from A demands — no more. Everything created here is scaffolding for C; the deliverable itself lives in `workspace/`, not `notes/`. `(A2)`
+
+### B.1 Default skeleton — always exactly three
 
 ```
 [task]/
-  rule.md              ← framework rules (one copy, global)
-  backward/
-    goal.md             ← task I/O specification (STABLE)
-    testpoints.md       ← acceptance criteria (P0/P1/P2)
-  forward/
-    reference.md        ← research references (append-only)
-    knowledge.md        ← atomic knowledge (append-only, living document)
-    sections.md         ← sub-stage decomposition (optional)
-  runtime/
-    plan.md             ← execution plan with dependency graph (process: what we do when)
-    memory.md           ← iteration log (append-only, versioned)
-    overview.md         ← static decomposition of final deliverable (product: what it looks like)
-    STATUS.md           ← session snapshot (≤20 lines, read first)
-  workspace/            ← actual deliverables
-  templates/            ← empty templates for new tasks
+  goal.md      # vector + I/O contract + P0/P1/P2 testpoints
+  STATUS.md    # auto-projected snapshot, refreshed as last sub-step of each iteration (A1)
+  workspace/   # actual deliverables
 ```
 
-File classification:
-| Class | Files | Rule |
-|-------|-------|------|
-| STABLE | goal.md, sections.md | Approved; changes require Change Log |
-| ACCUMULATED | reference.md, knowledge.md | Append-only; can mark outdated |
-| MUTABLE | runtime/* | Updated every iteration |
+### B.2 Growth table — files appear by axis, not by ritual
 
-## Role Distribution (Human / Hermes / Claude Code)
+| Trigger | New file(s) | Lifecycle |
+|---------|-------------|-----------|
+| `U ≥ 1` | `notes/knowledge.md` | append-only, schema in C.4 |
+| `U ≥ 1` with cited sources | `notes/references.md` | append-only |
+| `U = 2` | `notes/assumptions.md` | append-only audit log (C.1) |
+| `S ≥ 1` | `notes/overview.md` | rewriteable; layers chosen by *cognitive distance* (B.4) |
+| `S = 2` | `notes/sections.md` + `notes/overview-[X].md` | sections.md stable, sub-overviews rewriteable |
+| `R ≥ 1` | `notes/plan.md` | only if the plan outgrows STATUS.md |
+| `R = 2` | `notes/memory.md` + `workspace/REPORT.md` | memory append-only; REPORT built at D |
 
-In practice, the framework is used with a three-party split:
+Classes: **STABLE** (`goal.md`, `sections.md`) need an inline Change Log on edit; **ACCUMULATED** (`knowledge`, `references`, `memory`, `assumptions`) are append-only, mark superseded but never overwrite `(A3)`; **MUTABLE** (`STATUS`, `plan`, `overview`) rewrite freely.
 
-| Direction | Who | What |
-|-----------|-----|------|
-| **Forward (正向)** | Human → Hermes | Initial info: task docs, environment credentials, reference materials. Hermes populates forward/ (reference.md + knowledge.md) via reading + structured extraction. |
-| **Backward (反向)** | Hermes | Testpoints (testpoints.md): design P0/P1/P2 checkpoints that verify goal.md outputs. Human approves. |
-| **Middle iteration (中间迭代)** | Hermes + Claude Code | Simple tasks (code from tutorial, env setup, direct debugging) → Hermes does directly. Complex codebase understanding, deep refactoring, knowledge-gap tasks → delegate to Claude Code via `claude-code` skill. |
-| **Final deliverable (最后交付)** | Hermes → Human | Paper-style report (see Deliverable Format below) showing design, results, visualization, testpoint pass/fail. |
+### B.3 Roles (tool-agnostic)
 
-**Key insight**: The human doesn't fill testpoints — Hermes proposes them from goal.md analysis. The human only approves. This keeps the human's role focused on domain judgment (is this the right test?) not mechanical enumeration.
+| Role | Owns | What they do |
+|------|------|--------------|
+| **Reviewer** | Judgment + consequences | Approves testpoints, signs off at D |
+| **Driver** | Coherence | Plans, integrates, proposes testpoints, refreshes STATUS.md |
+| **Worker** | Throughput | Long-horizon execution, deep codebase work, parallel sub-tasks |
 
-### Stage 1: Research
-- Read goal.md → search for existing solutions/papers/references
-- Populate reference.md (source, relevance, key findings, extractable elements)
-- Populate knowledge.md (atomic definitions, constraints, design impact)
-- Deliverable: reference.md + knowledge.md
+Split is by *production vs verification*, not by *human vs agent* `(A1)`. Tool mappings in R.3.
 
-### Stage 2: Environment Setup
-- Create workspace/ directory structure
-- Install dependencies, configure toolchain
-- Make everything agent-actionable (no human-in-the-loop for routine ops)
-- For remote servers with password auth: see `references/ssh-askpass-pattern.md` (SSH_ASKPASS + base64 transfer, avoids Hermes interactive-SSH blocking)
-- For DLP/MLU pycnnl platform quirks (ICS lab2, Cambricon): see `references/pycnnl-dlp-platform-quirks.md`
-- For platform auto-grading submission pitfalls (ICS/Educg, zip structure, import paths, batch_size trap, HIDDEN exports): see `references/platform-autograding-pitfalls.md`
-- For cross-version NumPy weight compatibility: use `scripts/convert_npy_protocol2.py` (Python 3.10+ NumPy → Python 3.7 NumPy 1.19). For root-cause explanation and pitfalls, see `references/numpy-pickle-cross-version.md`.
-- For CPU convolution speed optimization (im2col): see `references/im2col-convolution-optimization.md`.
-- Deliverable: workspace/ ready
+### B.4 Product vs Process & Cognitive Distance
 
-### Stage 3: Sub-Stage Decomposition (optional)
-- Trigger: task can't be designed in one mental pass, or has too many branches
-- Fill sections.md with I/O contracts and states for each sub-stage
-- Sub-stage detailed designs go to overview-[X].md
-- Deliverable: sections.md
+When both files exist they answer different questions and must not bleed: `overview.md` = static product ("what does the final system look like"); `plan.md` = temporal process ("first / next / parallel"). Layers in `overview.md` chosen by *cognitive distance*, not template `(A2)`:
 
-### Stage 4: Design & Test Planning
-- Write overview.md using 3-layer description if needed
-- Write testpoints.md: P0 (must-pass gate) / P1 (quality) / P2 (completeness)
-- Initialize plan.md (plan-driven) or memory.md (iteration-driven)
-- Deliverable: testpoints.md + plan.md or memory.md
+| Distance between interface, computation, implementation | Write |
+|---|---|
+| Layers overlap; interface implies the rest | One layer |
+| Moderate gap on one side | Two layers |
+| Wide gap on both sides (novel math + engineering) | Three layers |
 
-### Stage 5: Iterate
-Per-iteration cycle:
-1. Read status: check runtime/ for current progress
-2. Execute: complete next step
-3. Verify: run testpoints (auto) or show to human (manual)
-4. Update: plan.md status or memory.md entry
-5. Grow: new understanding → knowledge.md
-6. Refine: design changes → overview.md
+---
 
-Termination: all P0 testpoints pass + human confirmation.
+## C. Iterate
 
-**Blocking signal**: stuck on same element repeatedly → rewind to Stage 3 (decompose further) or Stage 1 (research more). Only monotonically increasing knowledge and testpoints guarantee convergence.
+**At station C** we run a five-step cycle until all P0 testpoints clear. Each iteration declares its assumptions, then validates or falsifies them — this is what makes A3 enforceable rather than aspirational.
 
-**Platform submission iteration**: When the execution environment differs from the design environment (e.g., auto-grading platform with unknown directory structure, missing libraries, different Python version), use a probe-then-fix micro-cycle:
-1. Add debug output to entry points (print CWD, list directories, try multiple paths)
-2. Submit once → read error + debug output
-3. Fix the single blocking issue → resubmit
-4. Repeat until clean pass
-
-This is faster than trying to pre-guess all platform differences. One submission with debug output replaces multiple guesswork submissions.
-
-### Stage 6: Deliver
-- Integrate deliverables to workspace/
-- Cross-check against goal.md
-- Run all testpoints
-- Append final version to memory.md
-- Human sign-off against goal.md
-
-## Feature Dispatch
-
-任务先经过 `task-type-classification` 提取特征向量（F1~F10，每个 degree 0/1/2）。degree ≥ 1 的特征触发对应的增强模块。**特征叠加，不互斥。**
-
-| 触发特征 | 增强模块 | 影响范围 |
-|---------|---------|---------|
-| `knowledge_gap` | **知识增强** | forward/: knowledge.md 升级为核心活文档；runtime/: plan 步骤拆 learn→design→verify 微循环 + P-K 检查 |
-| `needs_overview` | **静态分解** | runtime/: 写 overview.md，按 cognitive distance 选层 |
-| `needs_report` | **报告生成** | Stage 6 后自动触发 REPORT.md |
-| `needs_research` | **外部调研** | forward/: 启 reference.md；knowledge.md 标注来源 |
-| `has_ambiguity` | **澄清闸门** | Stage 2 前插入 clarify gate |
-| `multi_stage` | **子阶段管理** | runtime/: sections.md + overview-[X].md |
-| `needs_iteration` | **反馈循环** | runtime/: memory.md 版本递增；plan 不预设全部步骤 |
-| `needs_parallel` | **并行标记** | runtime/ plan.md 标并行组；delegate_task 批量调度 |
-| `high_stakes` | **验证增强** | backward/: testpoints.md 扩大 P0 覆盖 |
-| `has_artifact` | **自查步骤** | runtime/ plan 每步尾追加自查子步骤 |
-
-## Feature Extraction (First Step)
-
-在进入框架之前，加载 `task-type-classification` skill 提取任务特征向量。产出：每个特征 degree(0/1/2) + 一句话证据。degree≥1 的特征触发上表对应的增强模块。
-
-默认仅 `has_artifact=1`。其他特征按需触发——宁可漏判低估（后续人工纠正）也别过度触发导致冗余工程。
-
-## ICS Platform Workflow
-
-For ICS course experiments submitted to the Cambricon DLP platform (希冀), see `references/ics-platform-submission.md` for environment mismatches, pickle compatibility, pycnnl pitfalls, and submission formatting.
-
-For ICS lab3 (VGG19 image classification) on the v6.1 LLM image, see `references/ics-lab3-v6.1-quirks.md` — covers changed paths, missing NumPy install, dead cv2 import, imageio pitfall, and 4-loop CPU timing.
-For ICS lab3 style transfer (3.3), see `references/ics-lab3-style-transfer.md` — covers Conv/Pool backward, ContentLoss/StyleLoss implementation, and training loop.
-
-## Deliverable Philosophy
-
-The framework files (`forward/`, `backward/`, `runtime/`) are scaffolding for the agent, not the deliverable. The human's deliverable is a **self-contained paper-style report** (`workspace/REPORT.md`) they can read and understand without tracing framework files. Framework maintenance should be lightweight — update STATUS.md and plan.md as needed for context handoff, but don't over-maintain mid-process. The final report carries the weight.
-
-## Quick-Start by Feature Vector
-
-| Feature Vector | 入口 |
-|----------------|------|
-| 仅 `has_artifact=1`（简单任务） | Stage 5（跳过所有框架文件） |
-| `knowledge_gap≥1` | Stage 1 → 5 → 6（全流程；learn→design→verify 微循环） |
-| `needs_research≥1` | Stage 1 → 4 → 5（调研→设计→执行） |
-| `has_ambiguity≥1` | Stage 2 前先 clarify → 再定入口 |
-| `high_stakes=1` | Stage 4 前确保 testpoints.md P0 覆盖关键路径 |
-| `needs_iteration=1` | Stage 5（memory.md 版本递增，不等 plan 完整） |
-| `needs_report=1` | 任务结束后自动走 Stage 6 出 REPORT.md |
-
-## Session Handoff Protocol
-
-New session reads in this order:
-```
-1. STATUS.md           → sub-second context recovery
-2. rule.md             → understand framework rules
-3. goal.md             → understand task objective
-4. plan.md (remaining steps) or memory.md (last 3 entries)
-5. overview.md         → understand current design (if exists)
-6. testpoints.md       → understand acceptance criteria
-```
-
-Context-constrained session: STATUS.md + goal.md + plan.md current step / memory.md last 3 > rule.md (cached, can skip) > others on demand.
-
-## Design Overview (overview.md)
-
-overview.md captures the **static decomposition of the final deliverable** — what the thing looks like, not how to build it. This is distinct from plan.md, which captures the **process** (Stage 1 → Stage 2 → ... → Stage 6).
-
-| File | Scope | Question it answers |
-|------|-------|-------------------|
-| **plan.md** | Process (temporal) | What do we do first? Next? Dependencies? |
-| **overview.md** | Product (static) | What does the final system look like? |
-
-### How Many Layers to Write
-
-Not every task needs all three layers. The decision is based on **cognitive distance** — how far apart the layers are in your mental model.
-
-When choosing formalism, pick the most natural one: state machine, dataflow graph, call graph, pseudocode, type system, or plain architecture diagram. No need to force all three.
-
-**Layer 1 — Interface Contract**: Invariants, type signatures, pre/post conditions. I/O table references goal.md.
-
-**Layer 2 — Computational Model**: The formal model behind the interface — state machine, dataflow, call graph, pseudocode. Answers "what does it compute?"
-
-**Layer 3 — Implementation Design**: Module decomposition, data flow, key algorithms. Traces to codebase structure. Readable by non-experts.
-
-### Cognitive Distance Rule
-
-| Cognitive Distance | Example | Write |
-|-------------------|---------|-------|
-| Layers overlap heavily — seeing the interface immediately implies the computation and implementation | Sorting algorithm, script that processes an image | **One layer** — pick whichever expresses it most naturally. No need to force the other two. |
-| Moderate separation — interface is clear but computation or implementation has non-obvious choices | ML training pipeline, CLI tool with plugin system | **Two layers** — the ones with non-obvious gaps. |
-| Wide separation — mathematical abstraction is hard to grasp, AND engineering constraints are complex, AND the gap between them is large | Research project with novel math + systems engineering | **All three layers** — each bridges a genuine cognitive gap. |
-
-**Decision heuristic**: If you can write Layer 1 and immediately visualize Layers 2 and 3 without additional thinking, they're close enough to skip. Only write the layers that bridge non-obvious jumps.
-
-For simple tasks where overview feels like overkill: a single architecture diagram (ASCII/PlantUML) with module I/O notes is sufficient. The framework is here for complexity, not ceremony.
-
-## Framework Maintenance Policy
-
-**Don't over-maintain runtime files during iteration.** The human cares about the final result, not the process artifacts. Keep `STATUS.md` and `plan.md` light — update only when a genuine checkpoint is reached or a dependency flips. Don't touch `knowledge.md` or `reference.md` after Stage 1 unless a genuine discovery occurs. Avoid writing `memory.md` entries for micro-iterations.
-
-**The one deliverable that MUST be thorough is the final report** (REPORT.md). The human reads that to understand what happened. Make it self-contained: architecture, results, testpoint checklist, visualizations (even ASCII). No "see knowledge.md for details" — the report stands alone.
-
-**Meta: avoid over-engineering.** When the framework starts generating its own complexity — new file categories, new classification dimensions, new templates — pause and ask: is this genuinely necessary, or am I making a decision with unexamined assumptions? The framework's value is in providing the minimum structure for complex tasks, not in becoming a complete taxonomy of all possible projects. When in doubt, err on the side of fewer files and simpler structure.
-
-## Final Deliverable Format (Paper-Style Report)
-
-After Stage 6 (all P0 testpoints pass), produce a **paper-style report** in `workspace/REPORT.md` for human sign-off. See the companion skill `workframe-to-report` for the exact file-to-chapter mapping and writing philosophy — the tl;dr is:
-
-Framework files are notes (fragmented, agent-oriented); the report is a narrative (structured, human-oriented). Same information, different expression.
-
-Template:
+### C.1 The five-step cycle
 
 ```
-1. Abstract — one paragraph: what we did, how, key results
-2. Problem Definition — input/output tables, constraints
-3. Design — network architecture (ASCII art / PlantUML), module decomposition, data flow
-4. Results — quantitative tables, performance comparison charts (ASCII bar charts), loss curves
-5. Testpoint Verification — P0/P1/P2 table with pass/fail status per testpoint
-6. Conclusion — summary + agent collaboration reflection
+1. assume   list >= 1 assumption this step depends on   -> notes/assumptions.md  (mandatory when U=2)
+2. execute  do the step
+3. verify   run testpoints (auto) or show Reviewer (manual)
+4. audit    on FAIL -> identify the falsified assumption,
+                       promote it to notes/knowledge.md  (A3)
+            on PASS -> mark the assumption "validated"
+5. project  refresh STATUS.md (current step, last result, open assumptions)
 ```
 
-Include **visualizations** even if ASCII: bar charts for speed comparison, loss convergence curves, architecture diagrams (PlantUML). The report should be self-contained so the human can grasp the full project without reading the framework files.
+Reviewer involvement is confined to step 3 (manual verification only) and station D — A1 made literal.
 
-- Judgments must have verifiable conditions; no fuzzy natural language
-- Research conclusions cite sources (URL, file path, paper ID)
-- Terms defined on first use; label [fact] vs [speculation]
-- Prefer type signatures, state transitions; natural language only for motivation
+### C.2 Stuck detection — A3 made operational
 
-## Sub-Stage Management
+Same element fails twice with no new `knowledge.md` entry between attempts → loop is non-monotonic; stop, step back to A or B, never tune in place. This is the single rule that guarantees termination. `(A3)`
 
-All sub-stage info centralized in sections.md:
-- Name, I/O contract, status, design file path per sub-stage
-- Detailed designs in overview-[X].md (each captures the static product of that sub-stage)
-- Parent overview.md references children
-- Default max 1 level depth; deeper requires justification
+### C.3 Probe-then-fix sub-loop
 
-## Feature Modules（特征增强模块）
+For opaque environments (autograding, remote runners) prefer one probe over many guesses `(A3)`: (1) add debug output at entry points — CWD, dir listings, candidate paths; (2) submit / run once, read errors *and* debug output; (3) fix exactly one blocking issue, resubmit; (4) repeat until clean.
 
-以下模块按需激活，互不冲突。每个模块描述触发条件、操作清单、何时降级。
+### C.4 Knowledge entry schema
 
-### knowledge_gap（知识增强）
+`notes/knowledge.md` is append-only. Each entry: `(A3)`
 
-**触发**：人+agent 都缺领域知识（notation、标准、领域惯例）。
+```
+### K-<short-id>  [<fact | inferred | speculation>]
+- date: YYYY-MM-DD
+- supersedes: K-... | none
+- claim: <one sentence>
+- evidence: <link | quote | repro snippet>
+- impact: <which design decision this informs>
+```
 
-**操作**：
-- knowledge.md 升级为核心活文档：每个产出物类型独立条目，含定义+可运行示例+常见错误+系统映射
-- plan 步骤拆 learn→design→verify 微循环；学习步骤可并行
-- 隐含 P-K 检查层：能否口头解释？参考了权威例子？理解无内部矛盾？
-- 阻塞信号识别：反复改同一元素→回退 knowledge.md，不硬调参数
+Never edit an old entry; add a new one with `supersedes:` and update downstream design notes.
 
-**何时降级**：参考材料自包含（教材有全部公式+代码）→ knowledge_gap=0，knowledge.md 直接转录。
+---
 
-**无此特征时**：knowledge.md 为普通 Stage 1 输出，写完后冻结。
+## D. Deliver
 
-### needs_overview（静态分解）
+**Station D** picks one of four templates by R. `notes/` is scaffolding, not deliverable — D's job is to translate scaffolding into a human-facing artifact (or explicitly skip when none is needed). `(A1)`
 
-**触发**：产出物结构不显然，多模块/多输出物。
+### D.1 Template by R
 
-**操作**：写入 overview.md，按 cognitive distance 选 1-3 层（见下方 Design Overview 节）。
+| Vector | Template | Output | Use when |
+|--------|----------|--------|----------|
+| `R=2` academic/course | **academic-paper** | `workspace/REPORT.md` | Graded experiment, formal write-up, P0/P1/P2 table required |
+| `R=2` engineering | **engineering-handover** | `workspace/REPORT.md` | Production deploy, on-call handover, rollback plan required |
+| `R=1` | **one-pager** | `workspace/SUMMARY.md` | Internal report, light research summary |
+| `R=0` | **status-only** | `STATUS.md` final snapshot | Exploration / prototype; artifacts speak for themselves |
 
-**无此特征时**：跳过 overview.md。
+### D.2 Template skeletons
 
-### 其余特征
+- **academic-paper** — Abstract / Problem Definition (I/O table) / Background & Related Work / Design / Method / Results (tables + ASCII viz) / Testpoint Verification (P0/P1/P2 expected vs actual) / Conclusion (verdict vs goal + falsified-assumption summary).
+- **engineering-handover** — TL;DR / Architecture (current state, no history) / Deployment Surface (config, env, secrets, versions) / Runbook (start/stop, health, common failures) / Rollback Plan (executable, data-compat) / P0 Testpoints / Known Limitations / Owners & On-call.
+- **one-pager** — Title + vector. *What we did* (2-3 sentences). *Key findings* (bullets). *Numbers / evidence* (one table or chart). *Open questions*. Total ≤ 50 lines.
+- **status-only** — Final `STATUS.md` block: `Vector / Step: DONE / Last result / Artifacts / Open assumptions`. Reviewer reads `workspace/` directly.
 
-其余特征（needs_report / needs_research / has_ambiguity / multi_stage / needs_iteration / needs_parallel / high_stakes / has_artifact）的操作见 Feature Dispatch 表，无需额外展开。
+### D.3 notes/ → section source map
+
+```
+goal.md                 -> Abstract + Problem Definition + Testpoint expected-values
+notes/knowledge.md      -> Background / Key Concepts        (cite K-ids inline)
+notes/references.md     -> Related Work / Prior Art
+notes/overview.md       -> Design / Architecture
+notes/plan.md           -> Method / Implementation Steps
+notes/memory.md         -> Agent Collaboration Reflection
+notes/assumptions.md    -> Conclusion: falsified-assumption summary
+workspace/*             -> Implementation code refs + run-time numbers in Results
+```
+
+Translation rule: framework files are notes (fragmented, agent-oriented); the report is narrative (structured, human-oriented). Re-tell, do not paste. `(A1)`
+
+**Sign-off:** Reviewer compares deliverable against `goal.md` + P0 testpoints. Pass = done. Fail = re-enter C at the failed P0 *with* a new `knowledge.md` entry explaining the gap. `(A3)`
+
+---
+
+## Reference
+
+### R.1 Session handoff order
+
+```
+1. STATUS.md            -> sub-second context recovery
+2. goal.md              -> objective + vector + testpoints
+3. plan.md (remaining) / memory.md (last 3)
+4. overview.md          -> only if S >= 1
+5. knowledge.md         -> on demand
+```
+Context-constrained: STATUS.md + goal.md + last 3 plan/memory entries is the minimal viable load.
+
+### R.2 Anti-patterns checklist
+
+- Creating `notes/` files "just in case" — violates A2. Wait for the axis to score ≥ 1.
+- Editing `knowledge.md` entries in place — violates A3. Append a superseding entry.
+- Reviewer enumerating testpoints by hand — violates A1. Driver proposes; Reviewer approves.
+- Tuning parameters when a step fails twice — violates A3. Step back to A or B.
+- Writing all three overview layers reflexively — violates A2. Cognitive distance, not template.
+- Maintaining `STATUS.md` as a peer to `plan.md` — STATUS.md is a *projection*, not a source.
+- Pasting `notes/` content into the final report — violates D's narrative rule. Re-tell.
+
+### R.3 Tool-instance mappings
+
+| Role | Hermes | Claude Code | Pure-human |
+|------|--------|-------------|------------|
+| Reviewer | Human | Human | Human |
+| Driver | Hermes main agent | Claude Code session | Lead engineer |
+| Worker | `delegate_task` | subagents via Task | Pair / junior engineer |
+
+Single-agent setups: Driver also plays Worker; the split stays useful as mental discipline.
+
+### R.4 Generic appendix references
+
+Domain-neutral notes under `references/`: `ssh-askpass-remote-orchestration.md` (non-interactive remote exec), `numpy-pickle-cross-version.md` (NumPy `.npy` pickle protocol across Python versions). For ICS / Cambricon DLP / autograding-platform specifics, see the `ics-lab-workflow` skill.
+
+### R.5 Migration
+
+v2 used 10 features, 11 default files, embedded platform instructions. v3 compressed to 3 axes + 3 default files but kept 10 parallel sections. v4 (this) reorganizes the same 3 axes / 3 files as one four-station timeline (A→B→C→D), absorbing the sibling skills `task-type-classification` and `workframe-to-report` at A and D. In-flight tasks finish under their existing layout.

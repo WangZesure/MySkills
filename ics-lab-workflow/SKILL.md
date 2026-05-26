@@ -1,7 +1,8 @@
 ---
 name: ics-lab-workflow
-description: "ICS lab作业完整工作流——环境、框架、提交流程、平台坑、报告生成"
-version: 1.0.0
+description: "ICS lab作业完整工作流——环境、框架、提交流程、平台坑、报告生成。承接 agent-work-frame v3 外迁的所有 ICS / Cambricon DLP / 希冀平台 / Educg 自动评测专属材料。"
+version: 2.0.0
+related_skills: [agent-work-frame, workframe-to-report]
 ---
 
 # ICS Lab 作业工作流
@@ -78,3 +79,22 @@ runtime/memory.md       → Agent Collaboration
 - **卷积反向**: 旋转权重180°后做full卷积，或用im2col矩阵梯度反传
 - **风格迁移**: ContentLoss(C×H×W的MSE) + StyleLoss(Gram矩阵差异) + Adam优化器
 - **im2col**: 展开输入为列矩阵→权重矩阵乘→col2im还原，加速76~534x
+
+## 7. 附属材料索引
+
+以下文件由 `agent-work-frame` v2 → v3 迁移至本 skill。深入坑点查这里：
+
+### references/
+- `ics-platform-submission.md` — Lab2 在希冀平台的 pickle 协议、import 路径、CWD 探针
+- `ics-lab3-v6.1-quirks.md` — Lab3 v6.1 镜像路径变化、缺 NumPy、cv2 dead import、imageio 替代
+- `ics-lab3-style-transfer.md` — Lab3 3.3 Conv/Pool 反向、ContentLoss/StyleLoss、训练循环
+- `pycnnl-dlp-platform-quirks.md` — Cambricon DLP / pycnnl API、权重格式、NHWC flatten
+- `platform-autograding-pitfalls.md` — Educg 自动评测 zip 结构、import 路径、batch_size 陷阱、HIDDEN 导出
+- `im2col-convolution-optimization.md` — CPU 卷积 im2col 优化（加速 76~534x）
+
+### scripts/
+- `convert_npy_protocol2.py` — 跨版本 NumPy 权重转换（Python 3.10+ → Python 3.7 / NumPy 1.19，pickle protocol 2）
+
+### 跨场景通用条目（保留在 agent-work-frame）
+- SSH 非交互执行（`SSH_ASKPASS` + base64 传输）
+- NumPy `.npy` pickle 协议跨版本兼容的原理
